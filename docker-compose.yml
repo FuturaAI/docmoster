@@ -3,10 +3,12 @@ services:
     image: docmost/docmost:latest
     depends_on:
       - redis
+    env_file:
+      - .env
     environment:
       APP_URL: "http://localhost:3000"
       APP_SECRET: ${APP_SECRET}
-      DATABASE_URL: postgresql://postgres.${SUPABASE_PROJECT}:${SUPABASE_PASSWORD}@aws-0-eu-central-1.pooler.supabase.com:5432/postgres
+      DATABASE_URL: postgresql://postgres.${SUPABASE_PROJECT}:${SUPABASE_PASSWORD}@${SUPABASE_AWS_REGION}.pooler.supabase.com:5432/postgres
       REDIS_URL: "redis://redis:6379"
     ports:
       - "3000:3000"
