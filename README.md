@@ -27,14 +27,40 @@ The `docker-compose.yml` file includes the following services:
    cd <repository-directory>
    ```
 
-2. Update the `DATABASE_URL` in the `docker-compose.yml` file with your Supabase credentials:
-   ```yaml
-   DATABASE_URL: postgresql://postgres.<your-project-ref>:<your-password>@aws-0-eu-central-1.pooler.supabase.com:5432/postgres
+2. Create a `.env` file in the root directory with the following variables:
+   ```
+   APP_SECRET=your-strong-secret-key
+   SUPABASE_PROJECT=your-project-reference
+   SUPABASE_PASSWORD=your-database-password
    ```
 
-3. Update the `APP_SECRET` with a strong, unique value:
+3. The `docker-compose.yml` file is already configured to use these environment variables:
    ```yaml
-   APP_SECRET: "<your-secret-key>"
+   services:
+     docmost:
+       image: docmost/docmost:latest
+       depends_on:
+         - redis
+       environment:
+         APP_URL: "http://localhost:3000"
+         APP_SECRET: ${APP_SECRET}
+         DATABASE_URL: postgresql://postgres.${SUPABASE_PROJECT}:${SUPABASE_PASSWORD}@aws-0-eu-central-1.pooler.supabase.com:5432/postgres
+         REDIS_URL: "redis://redis:6379"
+       ports:
+         - "3000:3000"
+       restart: unless-stopped
+       volumes:
+         - docmost:/app/data/storage
+
+     redis:
+       image: redis:7.2-alpine
+       restart: unless-stopped
+       volumes:
+         - redis_data:/data
+
+   volumes:
+     docmost:
+     redis_data:
    ```
 
 4. Start the containers:
@@ -46,15 +72,29 @@ The `docker-compose.yml` file includes the following services:
 
 ## Environment Variables
 
-- `APP_URL`: The URL where the application will be accessed
-- `APP_SECRET`: Secret key for session encryption (should be a strong, random string)
-- `DATABASE_URL`: Connection string to your Supabase PostgreSQL database
-- `REDIS_URL`: Connection string for Redis
+Create a `.env` file with the following variables:
+
+```
+# Security Configuration
+APP_SECRET=your-strong-secret-key
+
+# Supabase Configuration
+SUPABASE_PROJECT=your-project-reference
+SUPABASE_PASSWORD=your-database-password
+
+# Optional Configuration
+# NODE_ENV=production
+# SMTP_HOST=
+# SMTP_PORT=
+# SMTP_USER=
+# SMTP_PASS=
+# MAIL_FROM=
+```
 
 ## Volumes
 
 The setup uses two persistent volumes:
-- `docmost`: Stores uploaded files and application data
+- `docmost`: Stores uploaded files and application data at `/app/data/storage`
 - `redis_data`: Stores Redis data
 
 ## Notes on Supabase Integration
@@ -62,8 +102,14 @@ The setup uses two persistent volumes:
 - This setup uses a direct connection to the Supabase database (port 5432)
 - For high-traffic deployments, consider using the connection pooler:
   ```
-  postgresql://postgres.<project-ref>:<password>@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true
+  DATABASE_URL=postgresql://postgres.${SUPABASE_PROJECT}:${SUPABASE_PASSWORD}@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true
   ```
+
+## Securing Your Configuration
+
+- Add `.env` to your `.gitignore` file to prevent accidentally committing credentials
+- Consider using Docker secrets for production deployments
+- You can create a `.env.example` file with placeholder values for documentation purposes
 
 ## Troubleshooting
 
@@ -76,8 +122,8 @@ The setup uses two persistent volumes:
 
 ## Security Considerations
 
-- Never commit your `docker-compose.yml` with real credentials to a public repository
-- Consider using environment variables or Docker secrets for sensitive information
+- Never commit your `.env` file with real credentials to a public repository
+- Consider using environment variables or Docker secrets for sensitive information in production
 - Regularly update your DocMost image for security patches
 
 ## Maintenance
