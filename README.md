@@ -136,6 +136,6 @@ The setup uses two persistent volumes:
 
 ## Resources
 
-- [DocMost Documentation](https://docs.docmost.com/)
+- [DocMost Documentation](https://docmost.com/docs/)
 - [Supabase Documentation](https://supabase.com/docs)
 - [Docker Compose Documentation](https://docs.docker.com/compose/)
