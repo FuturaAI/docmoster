@@ -1,0 +1,25 @@
+services:
+  docmost:
+    image: docmost/docmost:latest
+    depends_on:
+      - redis
+    environment:
+      APP_URL: "http://localhost:3000"
+      APP_SECRET: ${APP_SECRET}
+      DATABASE_URL: postgresql://postgres.${SUPABASE_PROJECT}:${SUPABASE_PASSWORD}@aws-0-eu-central-1.pooler.supabase.com:5432/postgres
+      REDIS_URL: "redis://redis:6379"
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    volumes:
+      - docmost:/app/data/storage
+
+  redis:
+    image: redis:7.2-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+volumes:
+  docmost:
+  redis_data:
