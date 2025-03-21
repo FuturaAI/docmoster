@@ -1,3 +1,6 @@
+# fill in the template
+envsubst '$DOMAIN' < "/etc/nginx/conf.d/$1" > /etc/nginx/conf.d/app.conf
+
 # wait for the docmost to be ready
 echo "Waiting for docmost to boot up; this may take a minute or two..."
 echo "If this takes more than ~5 minutes, check the logs of the docmost container for errors with the following command:"
