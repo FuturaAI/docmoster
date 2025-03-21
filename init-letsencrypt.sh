@@ -70,7 +70,7 @@ while true; do
   status_code=$(curl -o /dev/null -s -w "%{http_code}\n" "http://localhost/")
   
   # Check if the status code is 200
-  if [ "$status_code" -eq 200 ]; then
+  if [ "$status_code" -eq 200 ] || [ "$status_code" -eq 301 ]; then
     break  # Exit the loop
   else
     echo "Nginx is not ready yet, retrying in 5 seconds..."
