@@ -1,0 +1,113 @@
+# Log format to include request latency
+log_format custom_main '$remote_addr - $remote_user [$time_local] "$request" '
+                '$status $body_bytes_sent "$http_referer" '
+                '"$http_user_agent" "$http_x_forwarded_for" '
+                'rt=$request_time';
+
+upstream docmost {
+    server docmost:3000 fail_timeout=0;
+}
+
+# HTTP Server - Redirects to HTTPS
+server {
+    listen 80;
+    server_name ${DOMAIN};
+    
+    # Allow Let's Encrypt verification
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+    
+    # Redirect everything else to HTTPS
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# HTTPS Server
+server {
+    listen 443 ssl;
+    server_name ${DOMAIN};
+    
+    client_max_body_size 5G;    # Maximum upload size
+    
+    # SSL configuration
+    ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+    
+    # Logging
+    access_log /var/log/nginx/access.log custom_main;
+    
+    # Security headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options nosniff;
+    add_header X-Frame-Options SAMEORIGIN;
+    add_header X-XSS-Protection "1; mode=block";
+    
+    location / {
+        # Proxy headers
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header Host $host;
+        
+        proxy_http_version 1.1;
+        proxy_buffering off;
+        
+        # Disable redirect handling
+        proxy_redirect off;
+        
+        # Forward to DocMost
+        proxy_pass http://docmost;
+    }
+}
+
+# server {
+#     listen 80;
+#     server_name ${DOMAIN};
+
+#     client_max_body_size 5G;    # Maximum upload size
+
+#     access_log /var/log/nginx/access.log custom_main;
+
+#     location / {
+#         # misc headers
+#         proxy_set_header X-Real-IP $remote_addr;
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#         proxy_set_header X-Forwarded-Proto $scheme;
+#         proxy_set_header X-Forwarded-Host $host; 
+#         proxy_set_header Host $host;
+
+#         proxy_http_version 1.1;
+
+#         # we don't want nginx trying to do something clever with
+#         # redirects, we set the Host: header above already.
+#         proxy_redirect off;
+#         proxy_pass http://docmost;
+#     }
+
+#     location /.well-known/acme-challenge/ {
+#         root /var/www/certbot;
+#     }
+# }
+
+# server {
+#     listen 443 ssl;
+#     server_name ${DOMAIN};
+
+#     client_max_body_size 5G;    # Maximum upload size
+    
+#     location / {
+#         proxy_http_version 1.1;
+#         proxy_buffering off;
+#         proxy_pass http://localhost:80;
+#     }
+
+#     ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+#     ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+#     include /etc/letsencrypt/options-ssl-nginx.conf;
+#     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+# }

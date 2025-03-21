@@ -1,0 +1,73 @@
+services:
+  docmost:
+    image: docmost/docmost:latest
+    depends_on:
+      - redis
+    env_file:
+      - .env
+    environment:
+      APP_URL: "https://docs.futuraaigroup.com"
+      APP_SECRET: ${APP_SECRET}
+      DATABASE_URL: postgresql://postgres.${SUPABASE_PROJECT}:${SUPABASE_PASSWORD}@${SUPABASE_AWS_REGION}.pooler.supabase.com:5432/postgres
+      REDIS_URL: "redis://redis:6379"
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    volumes:
+      - docmost:/app/data/storage
+
+  redis:
+    image: redis:7.2-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+  nginx:
+    image: nginx:1.23.4-alpine
+    restart: always
+    depends_on:
+      - docmost
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./data/nginx:/etc/nginx/conf.d
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    # sleep a little bit to allow docmost to start up. 
+    # Without this we've seen issues where nginx shows no error logs but 
+    # does not recieve any traffic
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "6"
+    # The specified script waits for the docmost to start up. 
+    # Without this we've seen issues where nginx shows no error logs but 
+    # does not recieve any traffic  
+    # NOTE: we have to use dos2unix to remove Carriage Return chars from the file
+    # in order to make this work on both Unix-like systems and windows
+    command: > 
+      /bin/sh -c "dos2unix /etc/nginx/conf.d/run-nginx.sh 
+      && /etc/nginx/conf.d/run-nginx.sh app.conf.template"
+    env_file:
+      - .env.nginx
+
+
+  # follows https://pentacent.medium.com/nginx-and-lets-encrypt-with-docker-in-less-than-5-minutes-b4b8a60d3a71
+  certbot:
+    image: certbot/certbot
+    restart: always
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "6"
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+volumes:
+  docmost:
+  redis_data:
