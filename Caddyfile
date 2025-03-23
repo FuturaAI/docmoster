@@ -1,0 +1,3 @@
+docs.futuraaigroup.com {
+    reverse_proxy docmost:3000
+}
