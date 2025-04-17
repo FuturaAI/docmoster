@@ -1,3 +1,9 @@
 docs.futuraaigroup.com {
-    reverse_proxy docmost:3000
+   handle_path /portainer/* {
+        reverse_proxy portainer:9001
+    }
+    
+    handle {
+        reverse_proxy docmost:3000
+    }
 }
