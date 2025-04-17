@@ -1,14 +1,9 @@
 docs.futuraaigroup.com {
-  handle_path /portainer {
-    redir /portainer/ 302
-  }
-  
   handle_path /portainer/* {
-    uri strip_prefix /portainer
-    reverse_proxy portainer:9001
+      reverse_proxy portainer:9001
   }
   
   handle {
-    reverse_proxy docmost:3000
+      reverse_proxy docmost:3000
   }
 }
