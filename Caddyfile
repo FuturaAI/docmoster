@@ -1,7 +1,7 @@
 docs.futuraaigroup.com {
   handle_path /portainer* {
       uri strip_prefix /portainer
-      reverse_proxy portainer:9001
+      reverse_proxy portainer:9000
   }
   
   handle {
