@@ -1,5 +1,5 @@
 portainer.docs.futuraaigroup.com {
-    reverse_proxy portainer:9001
+    reverse_proxy portainer:9000
 }
 
 docs.futuraaigroup.com {
