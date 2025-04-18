@@ -1,10 +1,7 @@
+portainer.docs.futuraaigroup.com {
+    reverse_proxy portainer:9000
+}
+
 docs.futuraaigroup.com {
-  handle_path /portainer* {
-      uri strip_prefix /portainer
-      reverse_proxy portainer:9000
-  }
-  
-  handle {
-      reverse_proxy docmost:3000
-  }
+    reverse_proxy docmost:3000
 }
