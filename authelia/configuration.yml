@@ -20,7 +20,7 @@ access_control:
     - domain: portainer.docs.futuraaigroup.com
       policy: two_factor
       subject: "group:admins"
-    
+
     # DocMost (admin e team)
     - domain: docs.futuraaigroup.com
       policy: two_factor
@@ -28,10 +28,10 @@ access_control:
 session:
   name: authelia_session
   secret: ${SESSION_SECRET}
-  expiration: 3600  # 1 ora
-  inactivity: 300  # 5 minuti
-  domain: futuraaigroup.com  # dominio principale
-  remember_me_duration: 1M  # 1 mese per "Ricordami"
+  expiration: 3600 # 1 ora
+  inactivity: 300 # 5 minuti
+  domain: futuraaigroup.com # dominio principale
+  remember_me_duration: 1M # 1 mese per "Ricordami"
 
 regulation:
   max_retries: 3
