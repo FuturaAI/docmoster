@@ -7,7 +7,7 @@ forward_auth authelia:9091 {
 }
 
 # Authelia UI
-auth.futuraaigroup.com {
+auth.docs.futuraaigroup.com {
     reverse_proxy authelia:9091
 }
 
@@ -30,7 +30,7 @@ docs.futuraaigroup.com {
 }
 
 # Portainer - anche lui ha la sua login
-portainer.futuraaigroup.com {
+portainer.docs.futuraaigroup.com {
   @authelia path /authelia*
   handle @authelia {
     import authelia_proxy
