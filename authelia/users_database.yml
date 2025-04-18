@@ -1,0 +1,7 @@
+users:
+  admin:
+    password: ${ADMIN_PW}
+    displayname: "admin"
+    email: administration@futuraaigroup.com
+    groups:
+      - admins
