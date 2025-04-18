@@ -47,7 +47,6 @@ services:
       - .env
     volumes:
       - ./authelia:/config
-      - ./authelia/entrypoint.sh:/entrypoint.sh
     environment:
       - TZ=Europe/Rome
     restart: unless-stopped
