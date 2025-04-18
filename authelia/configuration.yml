@@ -2,18 +2,12 @@ server:
   host: 0.0.0.0
   port: 9091
 
+log:
+  level: info
+
 jwt_secret: ${JWT_SECRET}
 
-default_redirection_url: https://portainer.docs.futuraagroup.com
-
-session:
-  name: authelia_session
-  secret: ${SESSION_SECRET}
-  expiration: 1h
-  domain: docs.futuraagroup.com
-  redis:
-    host: redis
-    port: 6379
+default_redirection_url: https://docs.futuraaigroup.com
 
 authentication_backend:
   file:
@@ -22,29 +16,40 @@ authentication_backend:
 access_control:
   default_policy: deny
   rules:
-    # Admin full access
-    - domain: "*.docs.futuraagroup.com"
+    # Portainer (solo admin)
+    - domain: portainer.docs.futuraaigroup.com
       policy: two_factor
-      subject:
-        - group: admins
-
-    # Docmost per editors
-    - domain: docs.futuraagroup.com
+      subject: "group:admins"
+    
+    # DocMost (admin e team)
+    - domain: docs.futuraaigroup.com
       policy: two_factor
-      subject:
-        - group: editors
 
-    # Docmost read-only per viewers
-    - domain: docs.futuraagroup.com
-      policy: one_factor
-      subject:
-        - group: viewers
+session:
+  name: authelia_session
+  secret: ${SESSION_SECRET}
+  expiration: 3600  # 1 ora
+  inactivity: 300  # 5 minuti
+  domain: futuraaigroup.com  # dominio principale
+  remember_me_duration: 1M  # 1 mese per "Ricordami"
 
+regulation:
+  max_retries: 3
+  find_time: 120
+  ban_time: 300
+
+storage:
+  encryption_key: ${STORAGE_ENCRYPTION_KEY}
+  local:
+    path: /config/db.sqlite3
+
+# Configurazione per secondo fattore (TOTP)
 totp:
-  issuer: docs.futuraagroup.com
+  issuer: Futura AI Group
   period: 30
   skew: 1
 
+# Notificatore per recupero password e registrazione TOTP
 notifier:
   filesystem:
     filename: /config/notification.txt
