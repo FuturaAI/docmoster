@@ -38,19 +38,6 @@ services:
     depends_on:
       - docmost
 
-  authelia:
-    image: authelia/authelia:latest
-    container_name: authelia
-    depends_on:
-      - redis
-    env_file:
-      - .env
-    volumes:
-      - ./authelia:/config
-    environment:
-      - TZ=Europe/Rome
-    restart: unless-stopped
-
 volumes:
   docmost:
   redis_data:
