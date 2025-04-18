@@ -1,34 +1,40 @@
-(authelia_handler) {
-  @protected {
-    path /*
-    not path /authelia*
-  }
-  
-  handle @protected {
-    authenticate with auth-portal {
-      backends {
-        authelia {
-          method http
-          uri http://authelia:9091/api/verify
-          headers {
-            X-Original-URL {http.request.scheme}://{http.request.host}{http.request.uri}
-          }
-          status 401 403
-          copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
-        }
-      }
-    }
+(authelia_proxy) {
+  reverse_proxy authelia:9091 {
+    header_up X-Forwarded-Host {host}
+    header_up X-Forwarded-Proto {scheme}
+    header_up X-Forwarded-Uri {uri}
+    header_up Host {host}
   }
 }
 
 portainer.docs.futuraaigroup.com {
   reverse_proxy /authelia/* authelia:9091
-  import authelia_handler
+  @authelia path /authelia*
+  handle @authelia {
+    import authelia_proxy
+  }
+  
+  # Configurazione di autenticazione a livello di middleware
+  forward_auth authelia:9091 {
+    uri /api/verify
+    copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+  }
+  
   reverse_proxy portainer:9000
 }
 
 docs.futuraaigroup.com {
   reverse_proxy /authelia/* authelia:9091
-  import authelia_handler
+  @authelia path /authelia*
+  handle @authelia {
+    import authelia_proxy
+  }
+  
+  # Configurazione di autenticazione a livello di middleware
+  forward_auth authelia:9091 {
+    uri /api/verify
+    copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+  }
+  
   reverse_proxy docmost:3000
 }
