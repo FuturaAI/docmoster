@@ -1,28 +1,34 @@
-# Definizione degli snippet (senza la parola "import" nel nome)
-(authelia_portainer) {
-  forward_auth authelia:9091 {
-    uri /api/verify?rd=https://portainer.docs.futuraaigroup.com/authelia
-    copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+(authelia_handler) {
+  @protected {
+    path /*
+    not path /authelia*
   }
-}
-
-(authelia_docmost) {
-  forward_auth authelia:9091 {
-    uri /api/verify?rd=https://docs.futuraaigroup.com/authelia
-    copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+  
+  handle @protected {
+    authenticate with auth-portal {
+      backends {
+        authelia {
+          method http
+          uri http://authelia:9091/api/verify
+          headers {
+            X-Original-URL {http.request.scheme}://{http.request.host}{http.request.uri}
+          }
+          status 401 403
+          copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+        }
+      }
+    }
   }
 }
 
 portainer.docs.futuraaigroup.com {
   reverse_proxy /authelia/* authelia:9091
-  reverse_proxy portainer:9000 {
-    import authelia_portainer
-  }
+  import authelia_handler
+  reverse_proxy portainer:9000
 }
 
 docs.futuraaigroup.com {
   reverse_proxy /authelia/* authelia:9091
-  reverse_proxy docmost:3000 {
-    import authelia_docmost
-  }
+  import authelia_handler
+  reverse_proxy docmost:3000
 }
