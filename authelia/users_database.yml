@@ -1,6 +1,6 @@
 users:
   admin:
-    password: ${ADMIN_PW}
+    password: "$argon2id$v=19$m=65536,t=3,p=4$ogdC2fCcrEhs0lj7058sqg$0im+CvBSW0lMjhAaVydmgrK4yOr7Xi9ge4IGSsRXrdw"
     displayname: "admin"
     email: administration@futuraaigroup.com
     groups:

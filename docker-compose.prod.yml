@@ -50,7 +50,6 @@ services:
       - ./authelia/entrypoint.sh:/entrypoint.sh
     environment:
       - TZ=Europe/Rome
-    entrypoint: ["/entrypoint.sh"]
     restart: unless-stopped
 
 volumes:
