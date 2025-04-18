@@ -1,49 +1,48 @@
-# Authelia Portal.
-auth.example.com {
-        reverse_proxy authelia:9091
-}
+@no_auth path /authelia*
 
-(authelia_proxy) {
-  reverse_proxy authelia:9091 {
-    header_up X-Forwarded-Host {host}
-    header_up X-Forwarded-Proto {scheme}
-    header_up X-Forwarded-Uri {uri}
-    header_up Host {host}
-  }
-}
-
-portainer.docs.futuraaigroup.com {
-  reverse_proxy /authelia/* authelia:9091
-  @authelia path /authelia*
-  handle @authelia {
-    import authelia_proxy
-  }
-  
 forward_auth authelia:9091 {
-    uri /api/authz/forward-auth
-    ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest
-    ## this is configured in the Session Cookies section of the Authelia configuration.
-    # uri /api/authz/forward-auth?authelia_url=https://auth.example.com/
-    copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
-  }
-  
-  reverse_proxy portainer:9000
+  uri /api/authz/forward-auth
+  not @no_auth
+  copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
 }
 
+# Authelia UI
+auth.futuraaigroup.com {
+    reverse_proxy authelia:9091
+}
+
+# Docmost - con login interna
 docs.futuraaigroup.com {
-  reverse_proxy /authelia/* authelia:9091
   @authelia path /authelia*
   handle @authelia {
     import authelia_proxy
   }
-  
+
+  @no_auth path /authelia*
+
   forward_auth authelia:9091 {
     uri /api/authz/forward-auth
-    ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest
-    ## this is configured in the Session Cookies section of the Authelia configuration.
-    # uri /api/authz/forward-auth?authelia_url=https://auth.example.com/
+    not @no_auth
     copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
   }
-  
+
   reverse_proxy docmost:3000
+}
+
+# Portainer - anche lui ha la sua login
+portainer.futuraaigroup.com {
+  @authelia path /authelia*
+  handle @authelia {
+    import authelia_proxy
+  }
+
+  @no_auth path /authelia*
+
+  forward_auth authelia:9091 {
+    uri /api/authz/forward-auth
+    not @no_auth
+    copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+  }
+
+  reverse_proxy portainer:9000
 }
